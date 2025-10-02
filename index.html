@@ -1,219 +1,67 @@
-<!>doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Custom Alphabet Translator</title>
-<style>
-  body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial; margin: 28px; color:#111; }
-  h1 { margin: 0 0 10px 0; font-size: 20px; }
-  .cols { display:flex; gap:16px; margin-top:12px; flex-wrap:wrap; }
-  textarea { width:100%; min-height:120px; padding:10px; font-family: inherit; font-size:14px; box-sizing:border-box; }
-  .panel { flex:1 1 420px; min-width:320px; }
-  .controls { margin-top:8px; display:flex; gap:8px; flex-wrap:wrap; }
-  button { padding:8px 10px; border-radius:6px; border:1px solid #bbb; background:#f7f7f7; cursor:pointer; }
-  button:active{ transform: translateY(1px); }
-  .mapping { margin-top:18px; font-size:13px; background:#f3f8ff; padding:10px; border-radius:8px; border:1px solid #e0ecff; }
-  .small { font-size:13px; color:#444; }
-  .row { display:flex; gap:8px; align-items:center; margin-top:6px; }
-  label { font-size:13px; }
-  .inline { display:inline-flex; gap:8px; align-items:center; }
-  .footer { margin-top:16px; font-size:13px; color:#444; }
-  .copy-ok { color:green; font-weight:600; margin-left:8px; }
-</style>
+  <meta charset="UTF-8">
+  <title>Weird Symbol Translator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #111;
+      color: #eee;
+    }
+    textarea, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      font-size: 1.2em;
+      background: #222;
+      color: #eee;
+      border: 1px solid #444;
+    }
+    .output {
+      margin-top: 20px;
+      font-size: 1.5em;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+  </style>
 </head>
 <body>
-  <h1>Custom Alphabet — Translator</h1>
-  <div class="small">Uppercase is encoded by prefixing the glyph with <code>^</code>. Spaces, digits and punctuation are preserved.</div>
 
-  <div class="cols">
-    <div class="panel">
-      <strong>Plain / English text</strong>
-      <textarea id="plain" placeholder="Type or paste plain text here..."></textarea>
-      <div class="controls">
-        <button id="encodeBtn">Encode →</button>
-        <button id="copyEncoded">Copy encoded</button>
-        <div id="copyEncodedMsg" class="copy-ok" style="display:none">Copied!</div>
-      </div>
-    </div>
+  <h1>Weird Symbol Translator</h1>
+  <p>Type regular English letters and get them translated into a weird symbol alphabet.</p>
 
-    <div class="panel">
-      <strong>Encoded (custom alphabet)</strong>
-      <textarea id="encoded" placeholder="Encoded output appears here..."></textarea>
-      <div class="controls">
-        <button id="decodeBtn">← Decode</button>
-        <button id="copyPlain">Copy decoded</button>
-        <div id="copyPlainMsg" class="copy-ok" style="display:none">Copied!</div>
-      </div>
-    </div>
-  </div>
+  <textarea id="inputText" rows="5" placeholder="Type your message here..."></textarea>
+  <button onclick="translate()">Translate</button>
 
-  <div class="mapping">
-    <strong>Mapping (a → glyph)</strong>
-    <div style="margin-top:8px; display:flex; flex-wrap:wrap; gap:8px;">
-      <!-- mapping will be filled by JS -->
-      <div id="mapGrid"></div>
-    </div>
-    <div class="small" style="margin-top:8px;">
-      Case: uppercase letters are encoded with a leading caret (<code>^</code>) plus the glyph. Example: <code>A</code> → <code>^/\</code>
-    </div>
-  </div>
+  <div class="output" id="outputText"></div>
 
-  <div class="footer">
-    Opinion: this alphabet is practical and readable — keeps straight-line glyphs and remains reversible. Feel free to edit glyphs in the code below.
-  </div>
+  <script>
+    const symbolMap = {
+      'A': '⚚', 'B': 'β', 'C': '☪', 'D': 'ↁ', 'E': 'Σ',
+      'F': 'Ϝ', 'G': '₲', 'H': '♓', 'I': '!', 'J': 'ʖ',
+      'K': 'Ҡ', 'L': 'Ↄ', 'M': 'ϻ', 'N': '₪', 'O': '◎',
+      'P': 'ρ', 'Q': 'ℚ', 'R': 'Я', 'S': 'Ϟ', 'T': '☥',
+      'U': '|_|', 'V': '√', 'W': 'ω', 'X': '✖', 'Y': '¥',
+      'Z': 'ζ'
+    };
 
-<script>
-/*
-  Alphabet mapping: english letter -> glyph
-  Note: backslashes are escaped in these string literals.
-*/
-const MAP = {
-  a: '/\\',   b: '|3',  c: '<',   d: '|)',  e: '[-', f: '|=',
-  g: '(_+',   h: '|-|', i: '!',   j: '_|',  k: '|<', l: '|_',
-  m: '|\\/|', n: '|\\|', o: '()',  p: '|*',  q: '(,)', r: '|2',
-  s: '5',     t: '+',   u: '|_|', v: '\\/', w: '\\/\\/', x: '><',
-  y: '`/',    z: '2-'
-};
+    function translate() {
+      const input = document.getElementById("inputText").value.toUpperCase();
+      let output = '';
 
-// build reverse map glyph -> letter
-const revMap = {};
-for (const [k,v] of Object.entries(MAP)) {
-  revMap[v] = k;
-}
-
-// create list of glyphs sorted by length desc (for greedy matching on decode)
-const glyphsByLen = Object.keys(revMap).sort((a,b)=>b.length - a.length);
-
-// UI elements
-const plainEl = document.getElementById('plain');
-const encodedEl = document.getElementById('encoded');
-const encodeBtn = document.getElementById('encodeBtn');
-const decodeBtn = document.getElementById('decodeBtn');
-const mapGrid = document.getElementById('mapGrid');
-const copyEncoded = document.getElementById('copyEncoded');
-const copyEncodedMsg = document.getElementById('copyEncodedMsg');
-const copyPlain = document.getElementById('copyPlain');
-const copyPlainMsg = document.getElementById('copyPlainMsg');
-
-// populate mapping display
-(function renderMap(){
-  const frag = document.createDocumentFragment();
-  for (const letter of Object.keys(MAP)) {
-    const kv = document.createElement('div');
-    kv.style.padding = '6px 8px';
-    kv.style.background = 'white';
-    kv.style.border = '1px solid #e8eef8';
-    kv.style.borderRadius = '6px';
-    kv.style.fontFamily = 'monospace';
-    kv.style.fontSize = '13px';
-    kv.textContent = `${letter.toUpperCase()} / ${letter} → ${MAP[letter]}`;
-    frag.appendChild(kv);
-  }
-  mapGrid.appendChild(frag);
-})();
-
-// encode function
-function encodeText(input) {
-  let out = '';
-  for (let ch of input) {
-    if (ch >= 'A' && ch <= 'Z') {
-      const lower = ch.toLowerCase();
-      const glyph = MAP[lower] ?? null;
-      if (glyph) {
-        out += '^' + glyph;
-      } else {
-        out += ch; // unknown char: pass through
-      }
-    } else if (ch >= 'a' && ch <= 'z') {
-      out += MAP[ch] ?? ch;
-    } else {
-      // keep digits/punctuation/space as-is
-      out += ch;
-    }
-  }
-  return out;
-}
-
-// decode function (greedy)
-function decodeText(encoded) {
-  let i = 0;
-  const L = encoded.length;
-  let out = '';
-  while (i < L) {
-    const ch = encoded[i];
-    if (ch === '^') {
-      // uppercase marker: try to match a glyph starting at i+1
-      let matched = false;
-      for (const g of glyphsByLen) {
-        if (encoded.startsWith(g, i+1)) {
-          const letter = revMap[g];
-          out += letter.toUpperCase();
-          i += 1 + g.length;
-          matched = true;
-          break;
+      for (let char of input) {
+        if (symbolMap[char]) {
+          output += symbolMap[char];
+        } else {
+          output += char; // Keep spaces, punctuation, etc.
         }
       }
-      if (!matched) {
-        // nothing matched after ^ — treat caret as literal
-        out += '^';
-        i++;
-      }
-    } else {
-      // try to match any glyph starting at i (lowercase)
-      let matched = false;
-      for (const g of glyphsByLen) {
-        if (encoded.startsWith(g, i)) {
-          const letter = revMap[g];
-          out += letter;
-          i += g.length;
-          matched = true;
-          break;
-        }
-      }
-      if (!matched) {
-        // no glyph matched — copy char as-is (punctuation or unknown)
-        out += ch;
-        i++;
-      }
+
+      document.getElementById("outputText").innerText = output;
     }
-  }
-  return out;
-}
+  </script>
 
-// hookups
-encodeBtn.addEventListener('click', ()=> {
-  encodedEl.value = encodeText(plainEl.value);
-});
-
-decodeBtn.addEventListener('click', ()=> {
-  plainEl.value = decodeText(encodedEl.value);
-});
-
-// keyboard shortcuts: Ctrl+Enter to encode, Ctrl+Shift+Enter to decode
-plainEl.addEventListener('keydown', (e)=> {
-  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { encodedEl.value = encodeText(plainEl.value); }
-});
-encodedEl.addEventListener('keydown', (e)=> {
-  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { plainEl.value = decodeText(encodedEl.value); }
-});
-
-// copy helpers
-async function copyToClipboard(text, msgEl) {
-  try {
-    await navigator.clipboard.writeText(text);
-    msgEl.style.display = 'inline';
-    setTimeout(()=> msgEl.style.display = 'none', 1200);
-  } catch (err) {
-    alert('Copy failed — your browser may block clipboard access. Try selecting and copying manually.');
-  }
-}
-copyEncoded.addEventListener('click', ()=> copyToClipboard(encodedEl.value, copyEncodedMsg));
-copyPlain.addEventListener('click', ()=> copyToClipboard(plainEl.value, copyPlainMsg));
-
-// convenience: example text on load
-plainEl.value = "Hello World! This is a test: ABC xyz 123.";
-encodedEl.value = encodeText(plainEl.value);
-</script>
 </body>
 </html>
