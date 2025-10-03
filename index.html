@@ -2,66 +2,67 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Weird Symbol Translator</title>
+  <title>Alien Alphabet Translator</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      padding: 20px;
-      background: #111;
-      color: #eee;
+      background: #0e0e0e;
+      color: #00ff99;
+      padding: 2em;
+      text-align: center;
     }
-    textarea, button {
-      width: 100%;
+
+    textarea {
+      width: 90%;
+      height: 100px;
+      margin: 1em 0;
+      font-size: 16px;
       padding: 10px;
-      margin-top: 10px;
-      font-size: 1.2em;
-      background: #222;
-      color: #eee;
-      border: 1px solid #444;
     }
+
     .output {
-      margin-top: 20px;
-      font-size: 1.5em;
+      font-size: 20px;
+      padding: 1em;
       white-space: pre-wrap;
-      word-wrap: break-word;
+      background: #1e1e1e;
+      border: 1px solid #444;
     }
   </style>
 </head>
 <body>
+  <h1>🛸 Alien Alphabet Translator</h1>
+  
+  <p>Type your message below and watch it transform!</p>
+  
+  <textarea id="input" placeholder="Enter English text (A-Z only)..."></textarea>
 
-  <h1>Weird Symbol Translator</h1>
-  <p>Type regular English letters and get them translated into a weird symbol alphabet.</p>
-
-  <textarea id="inputText" rows="5" placeholder="Type your message here..."></textarea>
-  <button onclick="translate()">Translate</button>
-
-  <div class="output" id="outputText"></div>
+  <div class="output" id="output"></div>
 
   <script>
-    const symbolMap = {
-      'A': '⚚', 'B': 'β', 'C': '☪', 'D': 'ↁ', 'E': 'Σ',
-      'F': 'Ϝ', 'G': '₲', 'H': '♓', 'I': '!', 'J': 'ʖ',
-      'K': 'Ҡ', 'L': 'Ↄ', 'M': 'ϻ', 'N': '₪', 'O': '◎',
-      'P': 'ρ', 'Q': 'ℚ', 'R': 'Я', 'S': 'Ϟ', 'T': '☥',
-      'U': '|_|', 'V': '√', 'W': 'ω', 'X': '✖', 'Y': '¥',
-      'Z': 'ζ'
+    const alienAlphabet = {
+      A: '⚶', B: '҂', C: 'Ͼ', D: '⑂', E: '࿊', F: 'Ҩ', G: '₪',
+      H: 'Ϩ', I: 'ℸ', J: '፨', K: 'Ϗ', L: '⸸', M: '༒', N: '⍥',
+      O: '༆', P: '₰', Q: '࿇', R: 'ϡ', S: '℥', T: '⊹', U: '⍾',
+      V: 'ⱷ', W: '⚍', X: '⋖', Y: 'ϔ', Z: '₣'
     };
 
-    function translate() {
-      const input = document.getElementById("inputText").value.toUpperCase();
-      let output = '';
+    const input = document.getElementById('input');
+    const output = document.getElementById('output');
 
-      for (let char of input) {
-        if (symbolMap[char]) {
-          output += symbolMap[char];
+    input.addEventListener('input', () => {
+      const text = input.value.toUpperCase();
+      let translated = '';
+
+      for (let char of text) {
+        if (alienAlphabet[char]) {
+          translated += alienAlphabet[char];
         } else {
-          output += char; // Keep spaces, punctuation, etc.
+          translated += char; // Keep spaces, punctuation, etc.
         }
       }
 
-      document.getElementById("outputText").innerText = output;
-    }
+      output.textContent = translated;
+    });
   </script>
-
 </body>
 </html>
