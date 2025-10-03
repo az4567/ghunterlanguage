@@ -2,22 +2,31 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Alien Alphabet Translator</title>
+  <title>ghunter language translotr</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: monospace;
       background: #0e0e0e;
       color: #00ff99;
-      padding: 2em;
       text-align: center;
+      padding: 2em;
+    }
+
+    h1 {
+      font-size: 2em;
+      margin-bottom: 1em;
     }
 
     textarea {
-      width: 90%;
+      width: 80%;
       height: 100px;
-      margin: 1em 0;
       font-size: 16px;
       padding: 10px;
+      background: #1b1b1b;
+      color: #00ff99;
+      border: 1px solid #444;
+      margin-bottom: 1em;
+      resize: vertical;
     }
 
     .output {
@@ -26,16 +35,16 @@
       white-space: pre-wrap;
       background: #1e1e1e;
       border: 1px solid #444;
+      min-height: 60px;
+      width: 80%;
+      margin: 0 auto;
     }
   </style>
 </head>
 <body>
-  <h1>🛸 Alien Alphabet Translator</h1>
-  
-  <p>Type your message below and watch it transform!</p>
-  
-  <textarea id="input" placeholder="Enter English text (A-Z only)..."></textarea>
+  <h1>ghunter language translotr</h1>
 
+  <textarea id="input" placeholder="Type here..."></textarea>
   <div class="output" id="output"></div>
 
   <script>
@@ -54,11 +63,7 @@
       let translated = '';
 
       for (let char of text) {
-        if (alienAlphabet[char]) {
-          translated += alienAlphabet[char];
-        } else {
-          translated += char; // Keep spaces, punctuation, etc.
-        }
+        translated += alienAlphabet[char] || char;
       }
 
       output.textContent = translated;
